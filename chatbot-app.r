@@ -24,18 +24,29 @@ dbExecute(conn, "
   )
 ")
 
+
 # Define UI
 ui <- fluidPage(
-  theme = shinytheme("cerulean"),
-  titlePanel("Chatbot Example"),
-  sidebarLayout(
-    sidebarPanel(
-      textInput("user_input", "Your Message:", ""),
-      actionButton("send", "Send")
-    ),
-    mainPanel(
-      h4("Chatbox:"), 
-      verbatimTextOutput("txtout", placeholder = TRUE)
+  theme = shinytheme("united"),
+  titlePanel(div(style = "text-align: center; color: #2C3E50;", "AI-Powered Chatbot")),
+  
+  
+  fluidRow(
+    # Input Section
+    div(style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px; margin-bottom: 15px;",
+        textInput("user_input", "Input Message:", placeholder = "Type your message here...", width="100%"),
+        div(
+          style = "display: flex; gap: 10px; justify-content: flex-start;",
+          actionButton("send", "Send", class = "btn-primary", style = "flex: 1;"),
+          actionButton("clear", "Clear", class = "btn-danger", style = "flex: 1;")
+        )
+    )
+  ),
+  fluidRow(
+    # Chatbox Section
+    div(style = "background-color: #f7f7f7; padding: 20px; border-radius: 5px; height: 400px; overflow-y: auto;",
+        h4("Chatbox", style = "color: #34495E;"),
+        verbatimTextOutput("txtout", placeholder = TRUE)
     )
   )
 )
@@ -87,13 +98,22 @@ server <- function(input, output, session) {
     chat()
   })
   
+  # Clear chat history
+  observeEvent(input$clear, {
+    # Reset the reactive value
+    chat("")
+    # Clear the database table
+    dbExecute(conn, "DELETE FROM chat_log")
+  })
+  
   # Initialize chat history when app starts
-  update_chat()
+  #update_chat()
 }
 
 
 # Disconnect from database when the app stops
 onStop(function() {
+  dbExecute(conn, "DELETE FROM chat_log")
   dbDisconnect(conn)
 })
 
